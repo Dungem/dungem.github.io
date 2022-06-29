@@ -202,5 +202,5 @@ main {
 }
 #flex_container{
 	display: flex;
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
 }
