@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h2 class="name"></h2>
+
+    </div>
+
+
+    <script>
+        const name = document.querySelector('.name')
+        let value = "DŨNG EM HỌC CODE"; // đổi tên ở đây
+        const array = value.split("")
+        let delay = 0;
+        array.forEach(char => {
+            let span = document.createElement("span")
+            span.textContent = char;
+            name.appendChild(span)
+        })
+
+        const list_span = document.querySelectorAll('.name span')
+        let index = 0;
+        setInterval(() => {
+            list_span.forEach(span => {
+                span.style.fontSize = "90px"
+                span.style.position = "none"
+                span.style.textShadow = ''
+                span.style.color = "#fff"
+                span.style.borderBottom = "15px solid #fff"
+            })
+            list_span[index].style.fontSize = "120px"
+            list_span[index].style.position = "relative"
+            list_span[index].style.textShadow = "0px 0px 10px aqua ,0px 0px 20px aqua,0px 0px 30px aqua,0px 0px 500px aqua"
+            list_span[index].style.color = "aqua"
+            list_span[index].style.borderBottom = "15px solid aqua"
+            index++
+            if (index == list_span.length) {
+                index = 0
+            }
+        }, 200)
+
+
+
+    </script>
+</body>
+
+</html>
