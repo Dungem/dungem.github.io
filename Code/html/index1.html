@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>DUNG EM FORM</title>
+    <meta charset="utf-8" />
+    <meta name="description" content="DUNG form" />
+    <meta name="keywords" content="Fores, Course, IT, Registration" />
+    <meta name="author" content="DUNG Em" />
+    <script src="register.js"></script>
+
+</head>
+
+<body>
+    <h1>EM DUNG</h1>
+    <h2>Registration Form</h2>
+    <form id="registerForm" method="post" action="confirm.html">
+        <fieldset>
+            <legend>Persional information - use text</legend>
+
+            <p><label for="firstname">Enter your First Name</label>
+                <input type="text" id="firstname" name="firstname">
+            </p>
+
+            <p><label for="lastname">Enter your Last Name</label>
+                <input type="text" id="lastname" name="lastname">
+            </p>
+
+            <p><label for="email">Enter your Email</label>
+                <input type="text" id="email" name="email">
+            </p>
+
+            <p><label for="phonenumber">Enter your Phone Number</label>
+                <input type="text" id="phonenumber" name="phonenumber">
+            </p>
+
+            <p><label for="age">Enter your Age</label>
+                <input type="text" id="age" name="age">
+            </p>
+
+        </fieldset>
+        <br />
+        <fieldset id="radio_occupation">
+            <legend>select your occupation - use raido</legend>
+
+            <p> <label for="student">Student</label>
+                <input type="radio" id="student" name="occupation" value="student">
+            </p>
+
+            <p> <label for="teacher">Teacher</label>
+                <input type="radio" id="teacher" name="occupation" value="teacher">
+            </p>
+
+            <p> <label for="other">Other</label>
+                <input type="radio" id="other" name="occupation" value="other">
+            </p>
+
+        </fieldset>
+
+        <br />
+
+        <fieldset>
+            <legend>use Checkbox</legend>
+
+            <p><label for="vehicle1"> I have a bike - 499k</label>
+                <input type="checkbox" id="vehicle1" name="vehicle1" value="Bike">
+            </p>
+
+            <p><label for="vehicle2"> I have a bicycle - 399k</label>
+                <input type="checkbox" id="vehicle2" name="vehicle2" value="Bicycle">
+            </p>
+
+            <p><label for="vehicle3"> I have a car - 999k</label>
+                <input type="checkbox" id="vehicle3" name="vehicle3" value="Car">
+            </p>
+
+        </fieldset>
+
+
+        <p>
+            <label for="cars">Choose a car (use dropdown):</label>
+            <select name="cars" id="cars">
+                <option value="none">Please Select</option>
+                <option value="saab">Saab</option>
+                <option value="opel">Opel</option>
+                <option value="audi">Audi</option>
+            </select>
+
+        </p>
+
+        <input type="submit" value="Register now" />
+        <input type="reset" value="reset" />
+
+    </form>
+</body>
+
+</html>

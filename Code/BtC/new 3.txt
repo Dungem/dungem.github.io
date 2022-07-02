@@ -1,0 +1,1115 @@
+Bài tây 
+// Tuan03_LopT2_BaiTay.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <iostream>
+using namespace std;
+
+//Khai báo cấu trúc lá bài
+typedef struct LABAI {
+	int nut;		//từ 1-13: 1 = A, 11 = J, 12 = Q, 13 = K
+	int nuoc;		//1 = cơ (heart), 2 = rô (diamond), 3 = chuồn (club), 4 = bích (spade)
+};
+
+LABAI bobai[52];	//bộ bài
+int n = 52;			//số lá bài trong bộ bài
+
+//Khai báo hàm
+//1. Tạo bộ bài gồm 52 lá
+void taobobai(LABAI bobai[]);
+//2. Xáo trộn thứ tự các lá bài trong bộ bài
+void xaobai(LABAI bobai[]);
+//3. Chia bài cho n người chơi, mỗi người cầm k lá bài
+void chiabai(LABAI bobai[], LABAI taybai[][52], int n, int k);
+//4. In thông tin của 1 lá bài
+void inlabai(LABAI b);
+//5. In thông tin của 1 tay bài/bộ bài
+void intaybai(LABAI taybai[], int k);
+
+int main()
+{
+	taobobai(bobai);
+	intaybai(bobai, 52);
+    return 0;
+}
+
+//Định nghĩa hàm
+//1. Tạo bộ bài gồm 52 lá
+void taobobai(LABAI bobai[])
+{
+	int k = 0;
+	for (int nut = 1; nut <= 13; nut++)
+		for (int nuoc = 1; nuoc <= 4; nuoc++)
+		{
+			bobai[k].nut = nut;
+			bobai[k].nuoc = nuoc;
+			k++;
+		}
+}
+//2. Xáo trộn thứ tự các lá bài trong bộ bài
+void xaobai(int bobai[]);
+//3. Chia bài cho n người chơi, mỗi người cầm k lá bài
+void chiabai(LABAI bobai[], LABAI taybai[][52], int n, int k);
+//4. In thông tin của 1 lá bài
+void inlabai(LABAI b)
+{
+	if (b.nut == 1) cout << "A";
+	else if (b.nut == 11) cout << "J";
+	else if (b.nut == 12) cout << "Q";
+	else if (b.nut == 13) cout << "K";
+	else cout << b.nut;
+	if (b.nuoc == 1) cout << " co";
+	else if (b.nuoc == 2) cout << " ro";
+	else if (b.nuoc == 3) cout << " chuon";
+	else cout << " bich";
+
+}
+//5. In thông tin của 1 tay bài/bộ bài
+void intaybai(LABAI taybai[], int k)
+{
+	for (int i = 0; i < k; i++)
+	{
+		inlabai(taybai[i]);
+		cout << endl;
+	}
+}
+
+---------------------------------------------------------------------------------------------------------------------------
+
+// Tuan03_CL2_CardGame.cpp : Defines the entry point for the console application.
+// Chương trình cài đặt trò chơi bài cào (đếm nút)
+
+#include "stdafx.h"
+#include <time.h>
+#include <iostream>
+using namespace std;
+
+#define MAX 52
+
+//Khai báo cấu trúc 1 lá bài
+typedef struct LABAI {
+	int nuoc;		//1: cơ, 2: rô, 3: chuồn, 4: bích
+	int nut;		//1 --> 13: 11 = J, 12 = Q, 13 = K
+};
+
+//Biến toàn cục
+LABAI bobai[52];
+
+//Khai báo các hàm xử lý
+//1. Tạo bộ bài tây gồm 52 lá
+void taobobai(LABAI bobai[52]);
+//2. Xáo trộn thứ tự trong bộ bài (ngẫu nhiên)
+void xaobai(LABAI bobai[52]);
+//3. Chia bài cho n người chơi, mỗi người cầm k lá bài
+void chiabai(LABAI bobai[52], LABAI vanbai[MAX][MAX], int n, int k);
+//4. Đếm nút bài cào: trả về số nút
+//0 = bù, 10 = ba tây, 1-9 = số nút
+int demnut(LABAI b1, LABAI b2, LABAI b3);
+//5. Xác định người chơi thắng cuộc?
+//Trả về số lượng người thắng cuộc, stt của những người thắng, số nút cao nhất
+int kiemtrathang(LABAI vanbai[MAX][MAX], int n, int thang[], int &sonut);
+//6. In bộ bài ra màn hình để quan sát
+void inbobai(LABAI bobai[52]);
+//7. In thông tin 1 lá bài ra màn hình
+void inlabai(LABAI b);
+
+int main()
+{
+	srand(time(NULL));
+	taobobai(bobai);
+	xaobai(bobai);
+	inbobai(bobai);
+    return 0;
+}
+
+//Định nghĩa hàm
+//1. Tạo bộ bài tây gồm 52 lá
+void taobobai(LABAI bobai[52])
+{
+	int i = 0;		//số thứ tự từng lá trong bộ bài
+	for (int nt = 1; nt <= 13; nt++)
+		for (int nc = 1; nc <= 4; nc++)
+		{
+			bobai[i].nut = nt;
+			bobai[i].nuoc = nc;
+			i++;
+		}
+}
+//2. Xáo trộn thứ tự trong bộ bài (ngẫu nhiên)
+//Hàm tạo 1 số nguyên ngẫu nhiên có giá trị từ 0 đến n-1
+int random(int n)
+{
+	if (!n) return 0;		//chống lỗi
+	return rand() % n;
+}
+
+void xaobai(LABAI bobai[52])
+{
+	int solan = 20 + random(33);		//xào tối thiểu 20 lần, tối đa 52 lần
+	for (int i = 0; i < solan; i++)
+	{
+		int vt1 = random(52);			//lấy 2 vị trí ngẫu nhiên
+		int vt2 = random(52);
+		LABAI t = bobai[vt1];
+		bobai[vt1] = bobai[vt2];
+		bobai[vt2] = t;
+	}
+}
+
+//6. In bộ bài ra màn hình để quan sát
+void inbobai(LABAI bobai[52])
+{
+	for (int i = 0; i < 52; i++) {
+		inlabai(bobai[i]);
+		cout << endl;
+	}
+}
+
+//7. In lá bài
+void inlabai(LABAI b)
+{
+	char s[5][10] = { "","co","ro","chuon","bich" };	//mảng gồm 5 chuỗi
+	char t[3] = { 'J', 'Q', 'K' };
+	if (b.nut == 1)
+		cout << "A " << s[b.nuoc];
+	else if (b.nut <= 10)
+		cout << b.nut << " " << s[b.nuoc];
+	else
+		cout << t[b.nut-11] << " " << s[b.nuoc];
+}
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------
+// Week05_CardGame.cpp : Defines the entry point for the console application.
+// Implement the card game with totally 52 cards
+
+#include "stdafx.h"
+#include <time.h>
+#include <iostream>
+using namespace std;
+#define MAX 52			//number of cards in a deck
+
+//Khai báo cấu trúc 1 lá bài
+typedef struct CARD {
+	int shape;		//1: hearts, 2: diamonds, 3: clubs, 4: spades
+	int number;		//1 --> 13: 11 = J, 12 = Q, 13 = K
+};
+
+//Biến toàn cục (global variables)
+CARD deck[52];
+
+//Khai báo các hàm xử lý
+//1. Tạo bộ bài tây gồm 52 lá
+void CreateDeck(CARD deck[52]);
+//2. Xáo trộn thứ tự trong bộ bài (ngẫu nhiên)
+void ShuffleDeck(CARD deck[52]);
+//3. Chia bài cho n người chơi, mỗi người cầm k lá bài
+void DealCards(CARD deck[52], CARD hands[MAX][MAX], int n, int k);
+//4. Đếm nút bài cào: trả về số nút
+//0 = bù, 10 = ba tây, 1-9 = số nút
+int CountPoints(CARD b1, CARD b2, CARD b3);
+//5. Xác định người chơi thắng cuộc?
+//Trả về số lượng người thắng cuộc, stt của những người thắng, số nút cao nhất
+int FindWinners(CARD hands[MAX][MAX], int n, int winners[], int &maxpoints);
+//6. In bộ bài ra màn hình để quan sát
+void PrintDeck(CARD deck[52]);
+//7. In thông tin 1 lá bài ra màn hình
+void PrintCard(CARD b);
+//8. In tay bài ra màn hình để quan sát
+void PrintHand(CARD hand[], int k);
+//9. Tính số điểm của 1 tay bài theo trò chơi xì dzách
+//Tay bài có từ 2 tới 5 lá
+//Hàm trả về 23 nếu tay bài có đúng 2 quân A
+//Hàm trả về 22 nếu tay bài có đúng 2 quân, trong đó có 1A và 1 hình (hoặc 10)
+//Trường hợp còn lại quân hình tính 10, quân A có thể tính 1, 10 hoặc 11 sao cho có lợi nhất
+//Nếu tổng số nút của các lá bài > 21, hàm trả về 0
+//Ngược lại trả về tổng số nút của các lá bài
+int BlackJack(CARD hand[], int k);
+//10. Sắp xếp các lá bài trong tay bài tăng dần theo quy tắc bài "Tiến Lên miền Nam"
+//Nhỏ nhất là quân 3 bích, lớn nhất là quân 2 cơ
+void SortHand(CARD hand[], int k);
+//11. Hàm kiểm tra xem 1 tay bài (gồm k lá) có chứa loại nào sau đây không
+//Nếu có sảnh rồng (13 lá khác nút) trả về 6
+//Nếu có 4 quân 2, trả về 5
+//Nếu có 6 đôi, trả về 4
+//Nếu có 4 đôi thông trả về 3
+//Nếu có tứ quý (ko phải tứ quý 2) trả về 2
+//Nếu có 3 đôi thông trả về 1
+//Các trường hợp khác trả về 0
+int CheckTienLen(CARD hand[], int k = 13);
+//12. (Bài tập cộng điểm) bài Poker (5 lá) -- Xem trên trang LMS
+int CheckPoker(CARD hand[], int k = 5);
+
+int main()
+{
+	CARD hands[MAX][MAX];
+	int n = 4, k = 3;
+	srand((unsigned)time(NULL));		//generate a different set of random numbers each time
+	CreateDeck(deck);
+	ShuffleDeck(deck);
+	//PrintDeck(deck);
+	DealCards(deck, hands, n, k);
+	for (int i = 0; i < n; i++) {
+		cout << "=========\nPlayer #" << i + 1 << endl;
+		PrintHand(hands[i], k);
+		cout << "Points: " << CountPoints(hands[i][0], hands[i][1], hands[i][2]) << endl;
+	}
+	//Find winners
+	int winners[MAX], max, num;
+	num = FindWinners(hands, n, winners, max);
+	cout << "Number of winners: " << num << endl;
+	cout << "Winners' point: " << max << endl;
+	cout << "List of winner(s):" << endl;
+	for (int i = 0; i < num; i++)
+		cout << "#" << winners[i] + 1 << "\t";
+	cout << endl;
+	return 0;
+}
+
+//Function definitions
+//1. Tạo bộ bài tây gồm 52 lá
+void CreateDeck(CARD deck[52])
+{
+	int n = 0;			//current card
+	for (int shape = 1; shape <= 4; shape++)
+		for (int num = 1; num <= 13; num++)
+		{
+			deck[n].shape = shape;
+			deck[n].number = num;
+			n++;
+		}
+}
+//Function that gives a random number from 0 to n-1
+int Random(int n) {
+	return rand() % n;
+}
+//Function that swaps the content of 2 cards
+void Swap(CARD &a, CARD &b) {
+	CARD t = a;
+	a = b;
+	b = t;
+}
+
+//2. Xáo trộn thứ tự trong bộ bài (ngẫu nhiên)
+void ShuffleDeck(CARD deck[52])
+{
+	//Swap at least 30 times, at most 52 times between two cards
+	int no = 30 + Random(23);
+	for (int i = 0; i < no; i++) {
+		int v1 = Random(52);
+		int v2 = Random(52);
+		if (v1 != v2) Swap(deck[v1], deck[v2]);
+	}
+
+}
+//3. Chia bài cho n người chơi, mỗi người cầm k lá bài
+void DealCards(CARD deck[52], CARD hands[MAX][MAX], int n, int k)
+{
+	int v = 0;					//position in the deck
+	for (int j = 0; j < k; j++)
+		for (int i = 0; i < n; i++)
+			hands[i][j] = deck[v++];
+}
+//4. Đếm nút bài cào: trả về số nút
+//0 = bù, 10 = ba tây, 1-9 = số nút
+int CountPoints(CARD b1, CARD b2, CARD b3)
+{
+	if (b1.number > 10 && b2.number>10 && b3.number>10)		//All figures
+		return 10;
+	if (b1.number > 10) b1.number = 10;
+	if (b2.number > 10) b2.number = 10;
+	if (b3.number > 10) b3.number = 10;
+	return (b1.number + b2.number + b3.number) % 10;
+}
+//5. Xác định người chơi thắng cuộc?
+//Trả về số lượng người thắng cuộc, stt của những người thắng, số nút cao nhất
+int FindWinners(CARD hands[MAX][MAX], int n, int winners[], int &maxpoints)
+{
+	int count = 0;			//number of winners
+	maxpoints = -1;
+	//traverse all the players' hands
+	for (int i = 0; i < n; i++)
+	{
+		int pts = CountPoints(hands[i][0], hands[i][1], hands[i][2]);
+		if (pts > maxpoints) {				//we have one new winner
+			maxpoints = pts;
+			count = 1;
+			winners[0] = i;
+		}
+		else if (pts == maxpoints) {		//we have one more winner
+			winners[count++] = i;
+		}
+	}
+	return count;
+}
+//6. In bộ bài ra màn hình để quan sát
+void PrintDeck(CARD deck[52])
+{
+	for (int i = 0; i < MAX; i++) {
+		PrintCard(deck[i]);
+		cout << endl;
+	}
+}
+//7. In thông tin 1 lá bài ra màn hình
+void PrintCard(CARD b)
+{
+	char t1[] = { 'J', 'Q', 'K' };
+	if (b.number == 1) cout << "A";
+	else if (b.number > 10) cout << t1[b.number - 11];
+	else cout << b.number;
+	char t2[][20] = { ""," heart", " diamond", " club", " spade" };
+	cout << t2[b.shape];
+}
+//8. In tay bài ra màn hình để quan sát
+void PrintHand(CARD hand[], int k)
+{
+	for (int i = 0; i < k; i++) {
+		PrintCard(hand[i]);
+		cout << endl;
+	}
+}
+
+
+--------------------------------------------------------------------------------------------------------------------------------------
+dò mìn
+
+// Tuan06_CL2_MineSweeper.cpp : Defines the entry point for the console application.
+// Họ và tên: Nguyễn Văn A
+// MSSV: 15110001
+// Chương trình 1: Trò chơi MINESWEEPER
+
+#include "stdafx.h"
+#include <iostream>
+using namespace std;
+#include <time.h>
+
+#define MAX 20
+
+//Khai báo hàm
+//2. In ma trận (kích thước dxc)
+void inmt(int a[][MAX], int d, int c);
+//Hàm phát sinh số ngẫu nhiên từ 0 đến n-1
+int random(int n)
+{
+	int a = rand();
+	return a%n;
+}
+//Hàm đặt những quả mìn vào vị trí ngẫu nhiên trong bãi mìn
+void datmin(int a[][MAX], int n, int somin);
+//Hàm tính toán giá trị các ô còn lại trong bãi mìn
+void tinhsomin(int a[][MAX], int n);
+//6.Viết hàm tìm vị trí của ô xung quanh có nhiều mìn nhất
+//trả về số mìn nhiều nhất
+//các tham số d và c lưu dòng,cột của ô tìm được
+int timmax(int a[][MAX], int n, int &d, int &c);
+//7*.Viết hàm tìm vùng kxk có ít mìn nhất (k cho trước)
+int timmin(int a[][MAX], int n, int k, int &d, int &c);
+//8**.Viết hàm cho biết vùng chứa những số 0 liền kề lớn
+//nhất gồm bao nhiêu ô.
+int timvung0(int a[][MAX], int n);
+
+int main()
+{
+	int a[MAX][MAX];		//"bãi mìn"
+	int n;					//kích thước
+	int somin;				//số mìn
+
+	srand(time(NULL));
+	//nhập kích thước (>=5 và <=MAX)
+	do {
+		cout << "Nhap kich thuoc (tu 5 den " <<MAX <<"):";
+		cin >> n;
+	} while (n<5 || n>MAX);
+	//nhập số mìn (<=1/4 số ô)
+	do {
+		cout << "Nhap kich thuoc (tu 1 den " << n*n/4 << "):";
+		cin >> somin;
+	} while (somin<1 || somin>n*n/4);
+	datmin(a, n, somin);
+	tinhsomin(a, n);
+	inmt(a, n, n);
+	//tìm vùng có ít mìn nhất
+	int d, c;
+	int m = timmin(a, n, 4, d, c);
+	cout << m << endl << "(" << d << "," << c << ")" << endl;
+	cout << timvung0(a, n) << endl;
+    return 0;
+}
+
+//2. In ma trận (kích thước dxc)
+void inmt(int a[][MAX], int d, int c)
+{
+	for (int i = 0; i < d; i++) {
+		for (int j = 0; j < c; j++) {
+			cout.width(5);		//gióng thẳng cột
+			cout << a[i][j];
+		}
+		cout << endl;			//hết 1 dòng của ma trận
+	}
+}
+
+//Hàm đặt những quả mìn vào vị trí ngẫu nhiên trong bãi mìn
+void datmin(int a[][MAX], int n, int somin)
+{
+	int i, j;
+	//khởi gán
+	for (i = 0; i < n; i++)
+		for (j = 0; j < n; j++)
+			a[i][j] = 0;
+	//đặt mìn
+	while (somin > 0) {
+		i = random(n);
+		j = random(n);
+		if (a[i][j] == 0) {
+			a[i][j] = -1;
+			somin--;
+		}
+	}
+}
+
+//Hàm tính toán giá trị các ô còn lại trong bãi mìn
+void tinhsomin(int a[][MAX], int n)
+{
+	int i, j, k, l, dem;
+	for (i = 0; i < n; i++)
+		for (j = 0; j < n; j++)
+			if (a[i][j] == 0)			//chỉ xét những ô ko có mìn
+			{
+				dem = 0;
+				for (k = i - 1; k <= i + 1; k++)
+					for (l = j - 1; l <= j + 1; l++)
+						if (k >= 0 && k < n && l >= 0 && l < n &&
+							(k != i || l != j) && a[k][l] == -1)
+							dem++;
+				a[i][j] = dem;		//lưu lại số mìn xung quanh
+			}
+}
+
+//6.Viết hàm tìm vị trí của ô xung quanh có nhiều mìn nhất
+//trả về số mìn nhiều nhất
+//các tham số d và c lưu dòng,cột của ô tìm được
+int timmax(int a[][MAX], int n, int &d, int &c)
+{
+	int max = a[0][0];
+	d = c = 0;
+	for (int i = 0; i < n; i++)
+		for (int j = 0; j < n; j++)
+			if (max < a[i][j]) {
+				max = a[i][j];
+				d = i;
+				c = j;
+			}
+	return max;
+}
+//7*.Viết hàm tìm vùng kxk có ít mìn nhất (k cho trước)
+int timmin(int a[][MAX], int n, int k, int &d, int &c) {
+	int i, j, dem, l, m;
+	int min = k*k;
+	d = c = 0;						//cập nhật lại sau
+	if (k<0 || k>n) return -1;		//lỗi, ko hợp lệ
+	for (i = 0; i <= n - k; i++)	//duyệt tất cả các khối kxk
+		for (j = 0; j <= n - k; j++)
+		{
+			//bắt đầu đếm số mìn trong vùng kxk, góc trái trên (i,j)
+			dem = 0;
+			for (l = 0; l < k; l++)
+				for (m = 0; m < k; m++)
+					if (a[i + l][j + m] == -1) dem++;
+			if (dem < min) {
+				min = dem;
+				d = i;
+				c = j;
+			}
+		}
+	return min;
+}
+//8**.Viết hàm cho biết vùng chứa những số 0 liền kề lớn
+//nhất gồm bao nhiêu ô.
+//Bổ túc: Hàm đệ quy dùng để loang trên ma trận
+int dem0(int a[][MAX], int n, int d, int c) {
+	int plus = 0;
+	int count = 0;
+	if (a[d][c] == 0) {
+		plus = 1;
+		a[d][c] = -2;
+	}
+	//xét 8 ô xung quanh ô (d,c)
+	for (int i = -1; i <= 1; i++)
+		for (int j = -1; j <= 1; j++)
+			if (a[d + i][c + j] == 0)		//nếu là số 0 thì gọi đệ quy để loang
+				count = dem0(a, n, d + i, c + j);
+	return count + plus;
+}
+
+int timvung0(int a[][MAX], int n)
+{
+	int max = 0;
+	int temp = 0;
+	for (int i = 0; i < n; i++)
+		for (int j = 0; j < n; j++) {
+			if (a[i][j] == 0)
+				temp = dem0(a, n, i, j);
+			if (max < temp) max = temp;
+		}
+	return max;
+}
+
+
+-------------------------------------------------------------------------------------------------------------------------------------
+QUAY LUI TÌM ĐƯỜNG
+// Buoi09_LopT2_TimDuong.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <iostream>
+using namespace std;
+#define MAX 20
+
+//Khai báo kiểu
+typedef struct POS {		//biểu diễn từng vị trí trong mê cung
+	int d, c;
+};
+//Khai báo biến toàn cục
+int maze[MAX][MAX], n;		//mê cung và kích thước của nó
+int mark[MAX][MAX];			//ma trận đánh dấu từng vị trí đã đi qua hay chưa
+POS finalpath[MAX*MAX];		//lưu đường đi kết quả
+int finalnum;				//độ dài của đường đi kết quả
+POS path[MAX*MAX];			//lưu đường đi hiện tại (từ ô xp cho đến ô đang đứng)
+int num;					//độ dài của đường đi hiện tại
+
+//Khai báo hàm
+//1. Hàm in ma trận
+void inmt(int a[][MAX], int d, int c);
+//2. Hàm đọc dữ liệu từ tập tin, lưu vào ma trận
+//hàm trả về true nếu đọc thành công, ngược lại trả về false
+bool docfile(const char fname[], int a[][MAX], int &n);
+
+//Khởi tạo toàn bộ ma trận mark bằng 0
+void khoitaomark();
+//Kiểm tra xem vị trí (i,j) có phải là đích đến hay chưa
+//k=0 --> biên trái là đích
+//k=1 --> biên trên là đích
+//k=2 --> biên phải là đích
+//k=3 --> biên dưới là đích
+bool kiemtra(int i, int j, int k);
+//Hàm quay lui để tìm đường đi
+bool timduong(int i, int j, int k);
+
+int main()
+{
+	if (!docfile("F:/DATA/TIMDUONG2.TXT", maze, n)) return -1;
+	inmt(maze, n, n);
+	//Khởi gán
+	int i = 3, j = 5;			//vị trí xuất phát
+	khoitaomark();				//khởi tạo ma trận đánh dấu
+	//Thêm ô (i,j) vào ds đường đi hiện tại
+	num = 0;
+	path[num].d = i;
+	path[num].c = j;
+	num++;
+	mark[i][j] = 1;
+	//Tìm đường đi
+	bool kq = timduong(i, j, 1);		//tìm đường sang biên trái của mê cung
+	if (!kq)
+		cout << "Ko tim duoc duong di!" << endl;
+	else {
+		//in đường đi kết quả
+		for (int i = 0; i < finalnum; i++)
+			cout << "(" << finalpath[i].d << ", " << finalpath[i].c << ")-->";
+		cout << "end" << endl;
+	}
+	return 0;
+}
+
+//1. In ma trận (kích thước dxc)
+void inmt(int a[][MAX], int d, int c)
+{
+	for (int i = 0; i < d; i++)
+	{
+		for (int j = 0; j < c; j++)
+		{
+			cout.width(4);
+			cout << a[i][j];
+		}
+		cout << endl;
+	}
+}
+
+//2. Hàm đọc dữ liệu từ tập tin, lưu vào ma trận
+//hàm trả về true nếu đọc thành công, ngược lại trả về false
+bool docfile(const char fname[], int a[][MAX], int &n)
+{
+	FILE *fp;
+	fopen_s(&fp, fname, "rt");
+	if (fp == NULL) {
+		cout << "Ko mo duoc tap tin!\n";
+		return false;
+	}
+	//đọc dữ liệu
+	fscanf_s(fp, "%d", &n);			//kích thước bàn cờ
+	for (int i = 0; i < n; i++)
+		for (int j = 0; j < n; j++)
+			fscanf_s(fp, "%d", &a[i][j]);
+	//đóng tập tin lại
+	fclose(fp);
+	return true;
+}
+
+//Khởi tạo toàn bộ ma trận mark bằng 0
+void khoitaomark()
+{
+	for (int i = 0; i < n; i++)
+		for (int j = 0; j < n; j++)
+			mark[i][j] = 0;
+}
+//Kiểm tra xem vị trí (i,j) có phải là đích đến hay chưa
+//k=0 --> biên trái là đích
+//k=1 --> biên trên là đích
+//k=2 --> biên phải là đích
+//k=3 --> biên dưới là đích
+bool kiemtra(int i, int j, int k)
+{
+	if (k == 0 && j == 0) return true;		//đích đến là biên trái
+	if (k == 1 && i == 0) return true;
+	if (k == 2 && j == n - 1) return true;
+	if (k == 3 && i == n - 1) return true;
+	return false;
+}
+//Hàm quay lui để tìm đường đi
+bool timduong(int i, int j, int k)
+{
+	//kiểm tra xem đã chạm đích chưa
+	if (kiemtra(i, j, k)) {
+		//sao chép đường đi hiện tại vào đường đi kết quả
+		finalnum = num;
+		memcpy(finalpath, path, num*sizeof(POS));
+		return true;								//kết luận là có đường đi
+	}
+	else {			//chưa tới đích
+		//xét các vị trí xung quanh vị trí hiện tại xem có thể đi được nữa ko
+		int inext, jnext;
+		for (int x = -1; x <= 1; x++)
+			for (int y = -1; y <= 1; y++)
+			{
+				inext = i + x;		//tính vị trí tiếp theo
+				jnext = j + y;
+				if (inext >= 0 && inext < n && jnext >= 0 && jnext < n &&	//vị trí đó nằm trong maze
+					maze[inext][jnext] == maze[i][j] &&				//giá trị của nó giống ô hiện tại
+					mark[inext][jnext] == 0)							//ô đó chưa từng đi qua
+				{
+					//thử đi sang ô đó
+					mark[inext][jnext] = 1;			//đánh dấu đi rồi
+					//thêm ô đó vào đường đi hiện tại
+					path[num].d = inext;
+					path[num].c = jnext;
+					num++;
+					//Gọi đệ quy để đi tiếp từ ô đó
+					bool kq = timduong(inext, jnext, k);
+					if (kq)							//nếu tìm ra đường đi đến đích từ ô đó
+						return true;
+					else {
+						//trả lại trạng thái trước khi thử đi
+						mark[inext][jnext] = 0;		//xem ô đó chưa được đi qua
+						num--;						//loại ô đó ra khỏi ds đường đi
+					}
+				}
+			}
+	}
+	return false;			//ko tìm được đường đi đến đích từ vị trí (i,j)
+}
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+CHIA ĐỂ TRỊ
+// Buoi13_CL1_ChiaDeTri.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <iostream>
+using namespace std;
+#define MAX 100
+
+//VD1. Tìm kiếm nhị phân trên mảng có thứ tự
+//Cách 1: sử dụng đệ quy
+int BinarySearch1(int a[], int x, int left, int right)
+{
+	if (left > right) return -1;		//ko tìm thấy khi k.gian rỗng
+	int mid = (left + right) / 2;		//tìm trung điểm của k.gian
+	if (x == a[mid]) return mid;		//tìm thấy --> kết luận
+	if (x < a[mid]) 
+		return BinarySearch1(a, x, left, mid - 1);
+	return BinarySearch1(a, x, mid + 1, right);
+}
+//Cách 2: không dùng đệ quy --> dùng vòng lặp
+int BinarySearch2(int a[], int n, int x)
+{
+	int left = 0, right = n - 1;		//biến cục bộ
+	while (left <= right)				//k.gian tìm kiếm còn ít nhất 1 p.tử
+	{
+		int mid = (left + right) / 2;	//tính trung điểm
+		if (x == a[mid]) return mid;	//tìm thấy
+		else if (x < a[mid]) right = mid - 1;	//co biên phải
+		else left = mid + 1;					//co biên trái
+	}
+	return -1;							//ko tìm thấy
+}
+
+//VD2: Sắp xếp trộn (MergeSort)
+//2.1 Tách mảng (a,n) thành 2 mảng con (T1, n1) và (T2, n2)
+void tachmang(int a[], int n, int T1[], int &n1, int T2[], int &n2)
+{
+	n1 = n / 2;
+	n2 = n - n1;
+	for (int i = 0; i < n1; i++)
+		T1[i] = a[i];
+	for (int i = 0; i < n2; i++)
+		T2[i] = a[n1+i];
+}
+
+//2.2 Trộn 2 mảng (T1, n1) và (T2, n2) tăng dần thành (a, n) tăng dần
+void tronmang(int T1[], int n1, int T2[], int n2, int a[], int &n)
+{
+	n = n1 + n2;
+	int i = 0, j = 0, k = 0;		//i chạy trên T1, j trên T2, k trên a
+	while (i < n1 && j < n2)		//cả 2 mảng con đều còn phần tử
+	{
+		if (T1[i] < T2[j]) a[k++] = T1[i++];
+		else a[k++] = T2[j++];
+	}
+	while (i < n1) a[k++] = T1[i++];//đổ phần còn lại của T1 vào a (nếu có)
+	while (j < n2) a[k++] = T2[j++];//đổ phần còn lại của T2 vào a (nếu có)
+}
+
+//2.3 Sắp xếp trộn
+void MergeSort(int a[], int n)
+{
+	int *T1, *T2, n1, n2;
+	T1 = new int[n / 2 + 1];
+	T2 = new int[n / 2 + 1];
+	//B1. tách
+	tachmang(a, n, T1, n1, T2, n2);
+	//B2. sắp
+	if (n1 > 1) MergeSort(T1, n1);		//sắp phần 1 nếu cần thiết
+	if (n2 > 1) MergeSort(T2, n2);		//sắp phần 2 nếu cần thiết
+	//B3. trộn
+	tronmang(T1, n1, T2, n2, a, n);
+	delete T1;
+	delete T2;
+}
+
+//VD3: PartionSort (QuickSort)
+void PartitionSort(int a[], int n)
+{
+	//Khai báo
+	int *P1, *P2, *P3, n1 = 0, n2 = 0, n3 = 0;
+	P1 = new int[n];
+	P2 = new int[n];
+	P3 = new int[n];
+	int pivot = a[n / 2];
+	//B1. tách
+	for (int i = 0; i < n; i++)
+		if (a[i] < pivot) P1[n1++] = a[i];		//bỏ vào P1
+		else if (a[i] == pivot) P2[n2++] = a[i];
+		else P3[n3++] = a[i];
+	//B2. sắp P1 và P3 nếu cần thiết
+	if (n1 > 1) PartitionSort(P1, n1);
+	if (n3 > 1) PartitionSort(P3, n3);
+	//B3. nối - ghép
+	int k = 0;			//chạy trên a
+	for (int i = 0; i < n1; i++) a[k++] = P1[i];
+	for (int i = 0; i < n2; i++) a[k++] = P2[i];
+	for (int i = 0; i < n3; i++) a[k++] = P3[i];
+	delete P1; delete P2; delete P3;
+	//tham khảo thêm cách dùng hàm qsort() của C/C++
+	//tham khảo thêm cách dùng hàm bsearch() của C/C++
+}
+
+//VD4: tìm ước chung lớn nhất bằng pp giảm để trị (đệ quy)
+int uscln1(int a, int b)
+{
+	if (a == 0 && b == 0) return 0;			//lỗi
+	if (a == 0) return b;
+	if (b == 0) return a;					//đặc biệt
+	if (a == b) return a;					//suy biến
+	if (a > b) return uscln1(a - b, b);
+	return uscln1(a, b - a);
+}
+
+int uscln2(int a, int b)
+{
+	if (a == 0 && b == 0) return 0;			//lỗi
+	if (a == 0) return b;
+	if (b == 0) return a;					//đặc biệt
+	return uscln2(b, a%b);
+}
+//VD5: sắp xếp chèn (InsertionSort)
+//hàm phụ: chèn số x vào mảng có thứ tự sao cho mảng kết quả vẫn có thứ tự
+void insert(int a[], int &n, int x)
+{
+	int i = n - 1;				//xuất phát từ cuối mảng
+	while (i >= 0 && a[i] > x)	//vừa tìm số <=x đầu tiên từ bên phải sang
+		a[i + 1] = a[i--];		//vừa dời những số >x ra sau
+	a[i + 1] = x;				//chèn x vào sau vị trí tìm thấy/dừng lại
+	n++;
+}
+
+void InsertionSort(int a[], int n)
+{
+	int n1 = n - 1;							//kích thước của mảng con phía trước
+	if (n1 > 1) InsertionSort(a, n1);		//sắp phần đầu cho có thứ tự
+	insert(a, n1, a[n - 1]);				//chèn p.tử cuối vào mảng con phía trước
+}
+
+//BT áp dụng: tìm nhị phân trên ma trận
+//Hàm trả về true nếu tìm thấy, ngược lại trả về false
+//(i, j) lưu vị trí tìm thấy x, nếu ko thấy thì i=-1 và j=-1
+bool BSearchMatrix(int a[][MAX], int d, int c, int x, int &i, int &j)
+{
+	int left = 0, right = d*c - 1;
+	while (left <= right)
+	{
+		int mid = (left + right) / 2;
+		if (x == a[mid / c][mid%c]) {		//tìm thấy
+			i = mid / c;
+			j = mid%c;
+			return true;
+		}
+		else if (x < a[mid / c][mid%c]) right = mid - 1;
+		else left = mid + 1;
+	}
+	//ko thấy
+	i = j = -1;
+	return false;
+}
+
+int main()
+{
+	//int a[20] = { 1,2,4,6,7,9,15,22,30,50 };
+	//int n = 10, x = 2;
+	//int k = BinarySearch1(a, x, 0, n - 1);		//tìm trong toàn bộ mảng
+	//cout << k << endl;
+	//k = BinarySearch2(a,n,x);					//tìm trong toàn bộ mảng
+	//cout << k << endl;
+
+	int a[20] = { 9,2,6,4,3,1,7,5,8 };
+	int n = 9;
+	MergeSort(a, n);
+	for (int i = 0; i < n; i++)
+		cout << a[i] << "  ";
+	cout << endl;
+
+    return 0;
+}
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------
+TÚI XÁCH SL HẠN CHẾ 
+// Tuan12_ChieuT7_ThamLam.cpp : This file contains the 'main' function. Program execution begins and ends there.
+/**/
+
+#include <iostream>
+#include <stdio.h>
+using namespace std;
+
+//Khai báo cấu trúc lưu trữ thông tin 1 món đồ
+typedef struct MONDO {
+	int w;			//khối lượng
+	int v;			//giá trị
+	int q;			//số lượng hiện có
+};
+
+//Khai báo hàm
+//1. Đọc dữ liệu từ tập tin
+//Hàm trả về true nếu việc đọc thành công, ngược lại trả về false
+bool docfile(const char fname[], MONDO a[], int& n);
+//2. Sắp xếp danh sách món đồ theo từng tiêu chí "tham"
+//2.1 Sắp xếp giảm dần theo giá trị --> ưu tiên chọn đồ vật có giá trị cao
+void sapxep1(MONDO a[], int n);
+//2.1 Sắp xếp tăng dần theo khối lượng --> ưu tiên chọn đồ vật nhẹ
+void sapxep2(MONDO a[], int n);
+//2.1 Sắp xếp giảm dần theo đơn giá --> ưu tiên chọn đồ vật nhẹ mà có giá trị cao
+void sapxep3(MONDO a[], int n);
+
+//3. Cài đặt thuật toán tham lam để chọn các món đồ sao cho tổng giá trị đạt cao nhất
+//a: danh sách các món đồ
+//n: số loại đồ vật
+//w: sức chứa tối đa của cái túi
+//sl: chứa số lượng đồ vật được chọn mỗi loại
+//Hàm trả về tổng giá trị của những đồ vật được chọn
+int thamlam(MONDO a[], int n, int w, int sl[]);
+
+//4. In thông tin của 1 món đồ
+void inmondo(MONDO a);
+
+int main()
+{
+	MONDO a[100];
+	int n;
+	if (!docfile("D:/DATA/CAITUI.TXT", a, n)) {
+		cout << "Loi doc file!\n";
+		return -1;
+	}
+	else {
+		int sl[100];
+		int gt = thamlam(a, n, 37, sl);
+		for (int i = 0; i < n; i++) {
+			inmondo(a[i]);
+			cout << ": " << sl[i] << endl;
+		}
+		cout << "Tong gia tri thu duoc: " << gt << endl;
+	}
+}
+
+//Khai báo hàm
+//1. Đọc dữ liệu từ tập tin
+//Hàm trả về true nếu việc đọc thành công, ngược lại trả về false
+bool docfile(const char fname[], MONDO a[], int& n)
+{
+	//B1. Khai báo con trỏ tập tin
+	FILE* fp;
+	//B2. Mở tập tin
+	fopen_s(&fp, fname, "rt");
+	//B3. Kiểm tra xem mở có thành công ko
+	if (!fp) {
+		cout << "Ko mo duoc tap tin!\n";
+		return false;
+	}
+	//B4. Đọc/ghi dữ liệu
+	fscanf_s(fp, "%d", &n);			//đọc số loại đồ vật ở dòng đầu tiên
+	for (int i = 0; i < n; i++)
+		fscanf_s(fp, "%d%d%d", &a[i].w, &a[i].v, &a[i].q);
+	//B5. Đóng tập tin
+	fclose(fp);
+	return true;
+}
+//Hàm bổ trợ
+void hoanvi(MONDO& a, MONDO& b)
+{
+	MONDO t = a;
+	a = b;
+	b = t;
+}
+
+//2. Sắp xếp danh sách món đồ theo từng tiêu chí "tham"
+//2.1 Sắp xếp giảm dần theo giá trị --> ưu tiên chọn đồ vật có giá trị cao
+void sapxep1(MONDO a[], int n)
+{
+	for (int i = 0; i < n - 1; i++)
+		for (int j = i + 1; j < n; j++)
+			if (a[i].v < a[j].v) hoanvi(a[i], a[j]);
+}
+//2.1 Sắp xếp tăng dần theo khối lượng --> ưu tiên chọn đồ vật nhẹ
+void sapxep2(MONDO a[], int n)
+{
+	for (int i = 0; i < n - 1; i++)
+		for (int j = i + 1; j < n; j++)
+			if (a[i].w > a[j].w) hoanvi(a[i], a[j]);
+}
+//2.1 Sắp xếp giảm dần theo đơn giá --> ưu tiên chọn đồ vật nhẹ mà có giá trị cao
+void sapxep3(MONDO a[], int n)
+{
+	for (int i = 0; i < n - 1; i++)
+		for (int j = i + 1; j < n; j++)
+			if (a[i].v * 1.0 / a[i].w < a[j].v * 1.0 / a[j].w)
+				hoanvi(a[i], a[j]);
+}
+
+//3. Cài đặt thuật toán tham lam để chọn các món đồ sao cho tổng giá trị đạt cao nhất
+//a: danh sách các món đồ
+//n: số loại đồ vật
+//w: sức chứa tối đa của cái túi
+//sl: chứa số lượng đồ vật được chọn mỗi loại
+//Hàm trả về tổng giá trị của những đồ vật được chọn
+int thamlam(MONDO a[], int n, int w, int sl[])
+{
+	int tonggt = 0;			//tổng giá trị các món đồ được chọn
+	//B1. Sắp xếp các món đồ theo thứ tự ưu tiên giảm dần
+	//(ưu tiên chọn các đồ vật trong danh sách theo thứ tự từ trái sang phải)
+	sapxep1(a, n);
+	//B2. Lần lượt chọn từng loại đồ vật
+	for (int i = 0; i < n; i++) {
+		sl[i] = w / a[i].w;
+		tonggt += sl[i] * a[i].v;
+		w -= sl[i] * a[i].w;
+	}
+	return tonggt;
+}
+
+//4. In thông tin của 1 món đồ
+void inmondo(MONDO a)
+{
+	cout << "(" << a.w << "\t" << a.v << "\t" << a.q << ")";
+}
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+QUY HOACH ĐỌNG
+// Buoi13_LopT2_QHDong.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include <iostream>
+using namespace std;
+
+//VD: Tính giai thừa
+//Cách 1: dùng đệ quy
+long GiaiThua1(int n) {
+	if (n <= 0) return 1L;				//số 1 kiểu long
+	return n*GiaiThua1(n - 1);
+}
+
+//Cách 2: dùng mảng 1 chiều lưu kết quả trung gian, mảng tĩnh
+long GiaiThua2(int n){
+	if (n <= 0) return 1L;
+	long F[100];
+	F[0] = 1;			//0!
+	for (int i = 1; i <= n; i++)
+		F[i] = i*F[i - 1];
+	return F[n];		//n!
+}
+
+//Cách 3: dùng mảng 1 chiều (cấp phát động)
+long GiaiThua3(int n) {
+	if (n <= 0) return 1L;
+	long *F;			//con trỏ dùng cấp phát động
+	F = new long[n + 1];//cấp phát
+	F[0] = 1;
+	for (int i = 1; i <= n; i++)
+		F[i] = i*F[i - 1];
+	long kq = F[n];
+	delete F;
+	return kq;
+}
+//Cách 4: dùng 2 biến đơn
+long GiaiThua4(int n) {
+	if (n <= 0) return 1L;
+	long F1, F;				//F1 = F(i-1), F = F(i)
+	F1 = 1;					//0!
+	for (int i = 1; i <= n; i++)
+	{
+		F = i*F1;
+		F1 = F;				//cuốn chiếu
+	}
+	return F;
+}
+//Cách 5: dùng 1 biến đơn
+long GiaiThua5(int n) {
+	if (n <= 0) return 1L;
+	long F = 1;
+	for (int i = 1; i <= n; i++)
+		F = i*F;			//F *= i;
+	return F;
+}
+
+//VD2: Tìm phần tử thứ n của dãy Fibonacci (4)
+//ĐN:	F(1) = F(2) = 1
+//		F(n) = F(n-2) + F(n-1) nếu n>2
+
+int main()
+{
+	cout << GiaiThua1(5) << endl;
+	cout << GiaiThua2(5) << endl;
+	cout << GiaiThua3(5) << endl;
+	cout << GiaiThua4(5) << endl;
+    return 0;
+}
