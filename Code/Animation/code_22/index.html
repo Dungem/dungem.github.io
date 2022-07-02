@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FireWork</title>
+    <link rel="stylesheet" href="styles.css">
+
+</head>
+
+<body>
+
+    <script>
+        const body = document.querySelector('body')
+        createBox()
+        effect()
+
+
+
+        function createBox() {
+            for (let i = 0; i < 20; i++) {
+                let div = document.createElement('div')
+                div.classList.add('box')
+                div.setAttribute("id", `id_${i}`)
+
+                createText(div)
+                body.appendChild(div)
+            }
+        }
+
+        function createText(boxElement) {
+
+            for (let i = 0; i < Math.floor(Math.random() * 300); i++) {
+                let span = document.createElement('span')
+                span.textContent = chars()
+                boxElement.appendChild(span)
+            }
+        }
+
+
+        function chars() {
+            let chars = "qwertyuiopasdfghjklzxcvbnm";
+            return chars[Math.floor(Math.random() * chars.length)]
+        }
+
+
+        function effect() {
+
+            let boxes = document.querySelectorAll(".box")
+            boxes.forEach(item => {
+                let selector = `#${item.getAttribute("id")} > span`
+                let span = document.querySelectorAll(selector)
+                console.log(span.length)
+                let index = 0
+                setInterval(function () {
+                    span[index].style.color = "green"
+                    index++
+                    if (index == span.length) {
+                        index = 0
+                        resetColor(span)
+                    }
+                }, 100)
+
+
+            })
+        }
+        function resetColor(spanList) {
+
+            spanList.forEach(item => {
+                item.style.color = 'black'
+            })
+        }
+
+    </script>
+
+</body>
+
+</html>
